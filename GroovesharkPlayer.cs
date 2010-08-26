@@ -25,7 +25,11 @@ namespace Grooveshark
             var head = m_document.all.tags("head")[0];
             dynamic script = m_document.createElement("script");
             script.type = "text/javascript";
-            script.text = @"var player = document.getElementById('gsliteswf');
+            script.text = @"document.body.oncontextmenu = function() {
+                                return false;
+                            }
+                            
+                            var player = document.getElementById('gsliteswf');
 
                             function nextWrapper() {
                                 player.next();

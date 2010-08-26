@@ -125,7 +125,7 @@ namespace Grooveshark
 
         public void SetTheme(int theme)
         {
-            ExecuteScript(String.Format("voteSongWrapper({0});", theme));
+            ExecuteScript(String.Format("setThemeWrapper({0});", theme));
         }
 
         public void PlayPlaylist(int playlist)

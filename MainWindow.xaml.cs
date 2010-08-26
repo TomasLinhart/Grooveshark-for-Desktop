@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.ComponentModel;
+using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Navigation;
 using Microsoft.WindowsAPICodePack.Taskbar;
@@ -66,6 +67,14 @@ namespace Grooveshark
                 playback,
                 favorite,
                 next);
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            e.Cancel = true;
+            WindowState = WindowState.Minimized;
+
+            base.OnClosed(e);
         }
     }
 }

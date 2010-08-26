@@ -69,6 +69,13 @@ namespace Grooveshark
 
                             function reloadUserLibraryWrapper() {
                                 player.reloadUserLibrary();
+                            }
+
+                            function hideAdvertisingBarWrapper() {
+                                // hideAdvertisingBar();
+                                $('#sidebar').remove();
+                                $('#mainContentWrapper').attr('id', 'playArea');
+                                $('#playArea').css('marginRight', 0);
                             }";
 
             head.appendChild(script);

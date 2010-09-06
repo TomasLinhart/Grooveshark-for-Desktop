@@ -13,7 +13,6 @@ namespace Grooveshark
     public partial class MainWindow
     {
         private GroovesharkPlayer m_player;
-        private bool m_isPlaying;
 
         public MainWindow()
         {
@@ -42,24 +41,22 @@ namespace Grooveshark
             previous.Click += (sender, args) => m_player.PreviousSong();
 
             var playback = new ThumbnailToolbarButton(Properties.Resources.Play, "Play");
+            playback.Click += (sender, args) => m_player.TogglePlayback();
 
-            playback.Click += (sender, args) =>
-                                  {
-                                      m_player.TogglePlayback();
-
-                                      if (m_isPlaying)
-                                      {
-                                          m_isPlaying = false;
-                                          playback.Icon = Properties.Resources.Play;
-                                          playback.Tooltip = "Play";
-                                      }
-                                      else
-                                      {
-                                          m_isPlaying = true;
-                                          playback.Icon = Properties.Resources.Pause;
-                                          playback.Tooltip = "Pause";
-                                      }
-                                  };
+            m_player.PlayerStatusChanged += (sender, args) =>
+                                                {
+                                                    if (m_player.Status == PlayerStatus.Playing ||
+                                                        m_player.Status == PlayerStatus.Loading)
+                                                    {
+                                                        playback.Icon = Properties.Resources.Pause;
+                                                        playback.Tooltip = "Pause";
+                                                    }
+                                                    else
+                                                    {
+                                                        playback.Icon = Properties.Resources.Play;
+                                                        playback.Tooltip = "Play";
+                                                    }
+                                                };
 
             TaskbarManager.Instance.ThumbnailToolbars.AddButtons(
                 new WindowInteropHelper(Application.Current.MainWindow).Handle,

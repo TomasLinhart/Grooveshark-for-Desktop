@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Reflection;
 using System.Windows;
+using System.Windows.Threading;
 using mshtml;
 
 namespace Grooveshark
@@ -7,6 +9,10 @@ namespace Grooveshark
     public class GroovesharkPlayer
     {
         private IHTMLDocument2 m_document;
+
+        public event EventHandler PlayerStatusChanged;
+
+        public PlayerStatus Status { get; private set; }
 
         public GroovesharkPlayer(IHTMLDocument2 document)
         {
@@ -18,6 +24,12 @@ namespace Grooveshark
             AddWrappers();
 
             HideAdvertising();
+
+            Status = PlayerStatus.None;
+
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100), IsEnabled = true };
+            timer.Tick += TimerTick;
+            timer.Start();
         }
 
         private void AddWrappers()
@@ -80,6 +92,10 @@ namespace Grooveshark
                                 $('#sidebar').remove();
                                 $('#mainContentWrapper').attr('id', 'playArea');
                                 $('#playArea').css('marginRight', 0);
+                            }
+                
+                            function getCurrentSongStatusWrapper() {
+                                return player.getCurrentSongStatus();
                             }";
 
             head.appendChild(script);
@@ -148,6 +164,45 @@ namespace Grooveshark
         {
             // key ctrl + 40
             throw new NotImplementedException();
+        }
+
+        private dynamic GetSongStatus()
+        {
+            // song - object, status - string
+            return ExecuteMethod("getCurrentSongStatusWrapper");
+        }
+
+        private void TimerTick(object sender, EventArgs e)
+        {
+            var songStatus = GetSongStatus();
+
+            if (songStatus == null) return;
+
+            var status = (PlayerStatus)Enum.Parse(typeof(PlayerStatus), songStatus.status, true);
+
+            Status = status;
+            if (PlayerStatusChanged != null)
+                    PlayerStatusChanged(this, new EventArgs());
+        }
+
+        private dynamic ExecuteMethod(string method, params object[] args)
+        {
+            if (args.Length == 0) args = null; 
+
+            try
+            {
+                return m_document.Script.GetType().InvokeMember(method, BindingFlags.InvokeMethod, null, m_document.Script, args);
+            }
+            catch (Exception e)
+            {
+#if DEBUG
+               /* MessageBox.Show("Could not call method: " + method +
+                    Environment.NewLine +
+                    "Exception: " + e.Message); */
+#endif
+            }
+
+            return null;
         }
 
         private void ExecuteScript(string script)

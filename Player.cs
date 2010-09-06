@@ -6,7 +6,7 @@ using mshtml;
 
 namespace Grooveshark
 {
-    public class GroovesharkPlayer
+    public class Player
     {
         private IHTMLDocument2 m_document;
 
@@ -14,7 +14,7 @@ namespace Grooveshark
 
         public PlayerStatus Status { get; private set; }
 
-        public GroovesharkPlayer(IHTMLDocument2 document)
+        public Player(IHTMLDocument2 document)
         {
             if (document == null)
                 throw new ArgumentNullException();

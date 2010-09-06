@@ -12,7 +12,7 @@ namespace Grooveshark
     /// </summary>
     public partial class MainWindow
     {
-        private GroovesharkPlayer m_player;
+        private Player m_player;
 
         public MainWindow()
         {
@@ -24,7 +24,7 @@ namespace Grooveshark
             var document = browser.Document as IHTMLDocument2;
             if (document == null) return;
             
-            m_player = new GroovesharkPlayer(document);
+            m_player = new Player(document);
 
             CreateToolbarButtons();
         }

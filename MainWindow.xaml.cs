@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Navigation;
@@ -45,8 +46,8 @@ namespace Grooveshark
 
             m_player.PlayerStatusChanged += (sender, args) =>
                                                 {
-                                                    if (m_player.Status == PlayerStatus.Playing ||
-                                                        m_player.Status == PlayerStatus.Loading)
+                                                    if (args.CurrentStatus == PlayerStatus.Playing ||
+                                                        args.CurrentStatus == PlayerStatus.Loading)
                                                     {
                                                         playback.Icon = Properties.Resources.Pause;
                                                         playback.Tooltip = "Pause";
@@ -58,12 +59,26 @@ namespace Grooveshark
                                                     }
                                                 };
 
-            TaskbarManager.Instance.ThumbnailToolbars.AddButtons(
-                new WindowInteropHelper(Application.Current.MainWindow).Handle,
-                previous,
-                playback,
-                favorite,
-                next);
+            m_player.SongChanged += (sender, args) =>
+                                        {
+                                            if (args.CurrentSong == null)
+                                            {
+                                                Title = "Grooveshark";
+                                                return;
+                                            }
+
+                                            Title = String.Format("{0} - {1} - {2}", args.CurrentSong.Name,
+                                                                  args.CurrentSong.ArtistName,
+                                                                  args.CurrentSong.AlbumName);
+                                        };
+
+            if (TaskbarManager.IsPlatformSupported)
+                TaskbarManager.Instance.ThumbnailToolbars.AddButtons(
+                    new WindowInteropHelper(Application.Current.MainWindow).Handle,
+                    previous,
+                    playback,
+                    favorite,
+                    next);
         }
 
         protected override void OnClosing(CancelEventArgs e)

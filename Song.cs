@@ -15,14 +15,40 @@ namespace Grooveshark
         public int Vote { get; set; }
         public string Name { get; set; }
 
+        public bool Equals(Song other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return other.AlbumID == AlbumID && other.TrackNum == TrackNum && other.ArtistID == ArtistID && 
+                other.EstimateDuration.Equals(EstimateDuration) && Equals(other.Art, Art) &&
+                Equals(other.AlbumName, AlbumName) && other.ID == ID && Equals(other.ArtistName, ArtistName) &&
+                other.Vote == Vote && Equals(other.Name, Name);
+        }
+
         public override bool Equals(object obj)
         {
-            var song = obj as Song;
-            if (song == null) return false;
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != typeof (Song)) return false;
+            return Equals((Song) obj);
+        }
 
-            return song.AlbumID == AlbumID && song.TrackNum == TrackNum && song.ArtistID == ArtistID &&
-                   song.EstimateDuration == EstimateDuration && song.Art == Art && song.AlbumName == AlbumName &&
-                   song.ID == ID && song.ArtistName == ArtistName && song.Vote == Vote && song.Name == Name;
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int result = AlbumID;
+                result = (result*397) ^ TrackNum;
+                result = (result*397) ^ ArtistID;
+                result = (result*397) ^ EstimateDuration.GetHashCode();
+                result = (result*397) ^ (Art != null ? Art.GetHashCode() : 0);
+                result = (result*397) ^ (AlbumName != null ? AlbumName.GetHashCode() : 0);
+                result = (result*397) ^ ID;
+                result = (result*397) ^ (ArtistName != null ? ArtistName.GetHashCode() : 0);
+                result = (result*397) ^ Vote;
+                result = (result*397) ^ (Name != null ? Name.GetHashCode() : 0);
+                return result;
+            }
         }
     }
 }

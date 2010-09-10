@@ -98,7 +98,14 @@ namespace Grooveshark
                             }
                 
                             function getCurrentSongStatusWrapper() {
-                                return player.getCurrentSongStatus();
+                                try
+                                {
+                                    return player.getCurrentSongStatus();
+                                }
+                                catch (e)
+                                {
+                                    return null;
+                                }
                             }";
 
             head.appendChild(script);
@@ -179,7 +186,7 @@ namespace Grooveshark
         {
             var songStatus = GetSongStatus();
 
-            if (songStatus == null) return;
+            if (songStatus == null || songStatus is DBNull) return;
 
             var status = (PlayerStatus)Enum.Parse(typeof(PlayerStatus), songStatus.status, true);
 

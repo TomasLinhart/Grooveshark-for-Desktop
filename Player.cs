@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Threading;
 using mshtml;
@@ -221,6 +222,8 @@ namespace Grooveshark
 
                     CurrentSong = null;
                 }
+
+                Marshal.ReleaseComObject(songStatus);
                 return;
             }
 
@@ -248,6 +251,8 @@ namespace Grooveshark
                     CurrentSong = newSong;
                 }
             }
+
+            Marshal.ReleaseComObject(songStatus);
         }
 
         private dynamic ExecuteMethod(string method, params object[] args)
@@ -279,9 +284,9 @@ namespace Grooveshark
             catch (Exception e)
             {
 #if DEBUG
-                MessageBox.Show("Could not call script: " + script +
+              /*  MessageBox.Show("Could not call script: " + script +
                     Environment.NewLine +
-                    "Exception: " + e.Message);
+                    "Exception: " + e.Message); */
 #endif
             }
         }

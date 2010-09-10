@@ -14,6 +14,7 @@ namespace Grooveshark
     public partial class MainWindow
     {
         private Player m_player;
+        private bool m_buttonsAdded;
 
         public MainWindow()
         {
@@ -32,6 +33,8 @@ namespace Grooveshark
 
         private void CreateToolbarButtons()
         {
+            if (m_buttonsAdded) return;
+            
             var favorite = new ThumbnailToolbarButton(Properties.Resources.Favorite, "Add to Favorites");
             favorite.Click += (sender, args) => m_player.FavoriteSong();
 
@@ -79,6 +82,8 @@ namespace Grooveshark
                     playback,
                     favorite,
                     next);
+
+            m_buttonsAdded = true;
         }
 
         protected override void OnClosing(CancelEventArgs e)

@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Windows;
 using System.Windows.Threading;
 using mshtml;
 
@@ -266,9 +266,9 @@ namespace Grooveshark
             catch (Exception e)
             {
 #if DEBUG
-               /* MessageBox.Show("Could not call method: " + method +
+               Debug.Write("Could not call method: " + method +
                     Environment.NewLine +
-                    "Exception: " + e.Message); */
+                    "Exception: " + e.Message);
 #endif
             }
 
@@ -284,9 +284,9 @@ namespace Grooveshark
             catch (Exception e)
             {
 #if DEBUG
-              /*  MessageBox.Show("Could not call script: " + script +
+              Debug.Write("Could not call script: " + script +
                     Environment.NewLine +
-                    "Exception: " + e.Message); */
+                    "Exception: " + e.Message);
 #endif
             }
         }

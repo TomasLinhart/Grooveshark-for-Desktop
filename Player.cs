@@ -289,7 +289,7 @@ namespace Grooveshark
 
     public delegate void SongChangedEventHandler(object sender, SongChangedEventArgs args);
 
-    public class SongChangedEventArgs
+    public class SongChangedEventArgs : EventArgs
     {
         public Song PreviousSong { get; private set; }
         public Song CurrentSong { get; private set; }

@@ -30,7 +30,7 @@ namespace Grooveshark
 
             Status = PlayerStatus.None;
 
-            var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100), IsEnabled = true };
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500), IsEnabled = true };
             timer.Tick += TimerTick;
             timer.Start();
         }
@@ -43,64 +43,83 @@ namespace Grooveshark
             script.text = @"document.body.oncontextmenu = function() {
                                 return false;
                             }
+
+                            var player = null; 
+                            var statuses = { 
+                                PLAY_STATUS_NONE: 0,
+                                PLAY_STATUS_INITIALIZING: 1,
+                                PLAY_STATUS_LOADING: 2,
+                                PLAY_STATUS_PLAYING: 3,
+                                PLAY_STATUS_PAUSED: 4,
+                                PLAY_STATUS_BUFFERING: 5,
+                                PLAY_STATUS_FAILED: 6,
+                                PLAY_STATUS_COMPLETED: 7
+                            }
+
+                            $(document).ready(function() {
+                                tryGetPlayer();
+                            });
                             
-                            var player = document.getElementById('gsliteswf');
+                            function tryGetPlayer() {
+                                try
+                                {
+                                    player = GS.player;
+                                }
+                                catch (e)
+                                {
+                                    setTimeout('tryGetPlayer()', 2000);
+                                }
+                            }
 
                             function nextWrapper() {
-                                player.next();
+                                player.nextSong();
                             }
 
                             function previousWrapper() {
-                                player.previous();
+                                player.previousSong();
                             }
 
                             function togglePlaybackWrapper() {
-                                player.togglePlayback();
-                            }
-
-                            function addSongsToQueueWrapper(param) {
-                                player.addSongsToQueue(param);
-                            }
-
-                            function pausePlaybackWrapper() {
-                                player.pausePlayback();
-                            }
-
-                            function playAlbumWrapper(param) {
-                                player.playAlbum(param);
-                            }
-
-                            function playPlaylistWrapper(param) {
-                                player.playPlaylist(param);
-                            }
-
-                            function setThemeWrapper(param) {
-                                player.setTheme(param);
-                            }
-
-                            function voteSongWrapper(param) {
-                                player.voteSong(param);
+                                var a = player.getPlaybackStatus();
+                                if (a) {
+                                    switch (a.status) {
+                                    case statuses.PLAY_STATUS_NONE:
+                                    case statuses.PLAY_STATUS_FAILED:
+                                    case statuses.PLAY_STATUS_COMPLETED:
+                                    default:
+                                        a.activeSong && player.playSong.apply(GS.player, a.activeSong.queueSongID);
+                                        break;
+                                    case statuses.PLAY_STATUS_INITIALIZING:
+                                    case statuses.PLAY_STATUS_LOADING:
+                                        player.stopSong();
+                                        break;
+                                    case statuses.PLAY_STATUS_PLAYING:
+                                    case statuses.PLAY_STATUS_BUFFERING:
+                                        player.pauseSong();
+                                        break;
+                                    case statuses.PLAY_STATUS_PAUSED:
+                                        player.resumeSong();
+                                        break
+                                    }
+                                }
                             }
 
                             function favoriteSongWrapper() {
-                                player.favoriteSong();
-                            }
-
-                            function reloadUserLibraryWrapper() {
-                                player.reloadUserLibrary();
+                                var activeSong = getCurrentSongStatusWrapper().activeSong;
+                                GS.user.addToSongFavorites(activeSong.SongID);
                             }
 
                             function hideAdvertisingBarWrapper() {
-                                // hideAdvertisingBar();
-                                $('#sidebar').remove();
-                                $('#mainContentWrapper').attr('id', 'playArea');
-                                $('#playArea').css('marginRight', 0);
+                                $('#capital').remove();
+                                $('#application').css('marginRight', 0);
+                                
+                                setTimeout('hideAdvertisingBarWrapper()', 500);
                             }
                 
                             function getCurrentSongStatusWrapper() {
                                 try
                                 {
-                                    return player.getCurrentSongStatus();
+                                    return player.getPlaybackStatus();
                                 }
                                 catch (e)
                                 {
@@ -127,12 +146,7 @@ namespace Grooveshark
             // also key ctrl + 37
             ExecuteScript("previousWrapper();");
         }
-
-        public void VoteSong(int rating)
-        {
-            ExecuteScript(String.Format("voteSongWrapper({0});", rating));
-        }
-
+        
         public void FavoriteSong()
         {
             ExecuteScript("favoriteSongWrapper();");
@@ -143,27 +157,7 @@ namespace Grooveshark
             // also key 32
             ExecuteScript("togglePlaybackWrapper();");
         }
-
-        public void PausePlayback()
-        {
-            ExecuteScript("pausePlaybackWrapper();");
-        }
-
-        public void SetTheme(int theme)
-        {
-            ExecuteScript(String.Format("setThemeWrapper({0});", theme));
-        }
-
-        public void PlayPlaylist(int playlist)
-        {
-            ExecuteScript(String.Format("playPlaylistWrapper({0});", playlist));
-        }
-
-        public void PlayAlbum(int album)
-        {
-            ExecuteScript(String.Format("playAlbumWrapper({0});", album));
-        }
-
+        
         public void VolumeUp()
         {
             // key ctrl + 38
@@ -188,20 +182,20 @@ namespace Grooveshark
 
             if (songStatus == null || songStatus is DBNull) return;
 
-            var status = (PlayerStatus)Enum.Parse(typeof(PlayerStatus), songStatus.status, true);
+            var status = (PlayerStatus) int.Parse(songStatus.status.ToString());
 
             lock (this)
             {
                 if (status != Status)
                 {
-                    if (PlayerStatusChanged != null)
+                   if (PlayerStatusChanged != null)
                         PlayerStatusChanged(this, new PlayerStatusEventArgs(Status, status));
 
                     Status = status;
                 }
             }
 
-            var song = songStatus.song;
+            var song = songStatus.activeSong;
             /* song object
              * albumID - int
              * trackNum - int
@@ -234,18 +228,36 @@ namespace Grooveshark
                 return;
             }
 
+            // new definition
+            //AlbumID: 3944048
+            //AlbumName: "Wasting"
+            //ArtistID: 10152
+            //ArtistName: "Luminary"
+            //CoverArtFilename: "default.png"
+            //EstimateDuration: 572000
+            //Flags: 0
+            //SongID: 24466846
+            //SongName: "Wasting (Andy Moor Remix)"
+            //autoplayVote: 0
+            //context: Object
+            //index: 169
+            //parentQueueID: "7080204381316276110285"
+            //queueSongID: 171
+            //source: "recommended"
+            //sponsoredAutoplayID: 0
+
             var newSong = new Song
                         {
-                            AlbumID = song.albumID,
-                            TrackNum = song.trackNum,
-                            ArtistID = song.artistID,
-                            EstimateDuration = song.estimateDuration,
-                            Art = String.IsNullOrEmpty(song.artURL) ? null : new Uri(song.artURL),
-                            AlbumName = song.albumName,
-                            ID = song.songID,
-                            ArtistName = song.artistName,
-                            Vote = song.vote,
-                            Name = song.songName
+                            AlbumID = song.AlbumID,
+                            // TrackNum = song.trackNum,
+                            ArtistID = song.ArtistID,
+                            EstimateDuration = song.EstimateDuration,
+                            CoverArtFilename = song.CoverArtFilename,
+                            AlbumName = song.AlbumName,
+                            ID = song.SongID,
+                            ArtistName = song.ArtistName,
+                            Vote = song.autoplayVote,
+                            Name = song.SongName
                         };
 
             lock (this)

@@ -8,7 +8,7 @@ namespace Grooveshark
         public int TrackNum { get; set; }
         public int ArtistID { get; set; }
         public double EstimateDuration { get; set; }
-        public Uri Art { get; set; }
+        public string CoverArtFilename { get; set; }
         public string AlbumName { get; set; }
         public int ID { get; set; }
         public string ArtistName { get; set; }
@@ -19,8 +19,8 @@ namespace Grooveshark
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return other.AlbumID == AlbumID && other.TrackNum == TrackNum && other.ArtistID == ArtistID && 
-                other.EstimateDuration.Equals(EstimateDuration) && Equals(other.Art, Art) &&
+            return other.AlbumID == AlbumID && other.TrackNum == TrackNum && other.ArtistID == ArtistID &&
+                other.EstimateDuration.Equals(EstimateDuration) && Equals(other.CoverArtFilename, CoverArtFilename) &&
                 Equals(other.AlbumName, AlbumName) && other.ID == ID && Equals(other.ArtistName, ArtistName) &&
                 other.Vote == Vote && Equals(other.Name, Name);
         }
@@ -41,7 +41,7 @@ namespace Grooveshark
                 result = (result*397) ^ TrackNum;
                 result = (result*397) ^ ArtistID;
                 result = (result*397) ^ EstimateDuration.GetHashCode();
-                result = (result*397) ^ (Art != null ? Art.GetHashCode() : 0);
+                result = (result*397) ^ (CoverArtFilename != null ? CoverArtFilename.GetHashCode() : 0);
                 result = (result*397) ^ (AlbumName != null ? AlbumName.GetHashCode() : 0);
                 result = (result*397) ^ ID;
                 result = (result*397) ^ (ArtistName != null ? ArtistName.GetHashCode() : 0);
